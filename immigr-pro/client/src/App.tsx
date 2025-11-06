@@ -1,35 +1,43 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { ChakraProvider } from "@chakra-ui/react";
+import theme from "./theme";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import Shell from "./components/Shell";
+import Landing from "./pages/Landing";
+import Questionnaire from "./pages/Questionnaire";
+import Result from "./pages/Result";
+import Login from "./pages/auth/Login";
+import Register from "./pages/auth/Register";
+import UserDashboard from "./pages/dashboard/UserDashboard";
+import AdminDashboard from "./pages/dashboard/AdminDashboard";
+import { AuthProvider, useAuth } from "./store/auth";
 
-function App() {
-  const [count, setCount] = useState(0)
-
-  return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+function Private({children}:{children:any}) {
+  const { user } = useAuth();
+  return user ? children : <Navigate to="/login" />;
+}
+function AdminOnly({children}:{children:any}) {
+  const { user } = useAuth();
+  return user?.role === "admin" ? children : <Navigate to="/" />;
 }
 
-export default App
+export default function App(){
+  return (
+    <ChakraProvider theme={theme}>
+      <AuthProvider>
+        <BrowserRouter>
+          <Shell>
+            <Routes>
+              <Route path="/" element={<Landing/>}/>
+              <Route path="/questionnaire" element={<Questionnaire/>}/>
+              <Route path="/result" element={<Result/>}/>
+              <Route path="/login" element={<Login/>}/>
+              <Route path="/register" element={<Register/>}/>
+              <Route path="/dashboard" element={<Private><UserDashboard/></Private>}/>
+              <Route path="/admin" element={<AdminOnly><AdminDashboard/></AdminOnly>}/>
+            </Routes>
+          </Shell>
+        </BrowserRouter>
+      </AuthProvider>
+    </ChakraProvider>
+  );
+}
