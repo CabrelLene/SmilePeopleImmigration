@@ -10,6 +10,7 @@ import Register from "./pages/auth/Register";
 import UserDashboard from "./pages/dashboard/UserDashboard";
 import AdminDashboard from "./pages/dashboard/AdminDashboard";
 import { AuthProvider, useAuth } from "./store/auth";
+import AuroraBackground from "./components/AuroraBackground";
 
 function Private({children}:{children:any}) {
   const { user } = useAuth();
@@ -25,6 +26,7 @@ export default function App(){
     <ChakraProvider theme={theme}>
       <AuthProvider>
         <BrowserRouter>
+        <AuroraBackground />
           <Shell>
             <Routes>
               <Route path="/" element={<Landing/>}/>
