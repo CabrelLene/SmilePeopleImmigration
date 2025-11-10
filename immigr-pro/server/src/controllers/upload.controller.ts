@@ -1,29 +1,51 @@
-import { Request, Response } from "express";
-import multer from "multer";
-import path from "node:path";
-import { CONFIG } from "../config.js";
-import Document from "../models/Document.js";
-import { AuthReq } from "../middleware/auth.js";
+// server/src/controllers/upload.controller.ts
+import type { Request, Response } from "express";
+import File from "../models/File.js";
 
-const storage = multer.diskStorage({
-  destination: (_req, _file, cb) => cb(null, CONFIG.UPLOAD_DIR),
-  filename: (_req, file, cb) => {
-    const name = Date.now() + "-" + Math.round(Math.random()*1e9) + path.extname(file.originalname);
-    cb(null, name);
+export async function handleUpload(req: Request, res: Response) {
+  try {
+    // Sécurité : nécessite l’auth
+    if (!req.user?._id) {
+      return res.status(401).json({ error: "Auth required" });
+    }
+
+    // Ici, selon ton middleware d'upload (multer, etc.)
+    // Supposons que tu reçoives req.file (single) avec: originalname, filename, mimetype, size
+    const f = (req as any).file as
+      | { originalname: string; filename: string; mimetype?: string; size?: number }
+      | undefined;
+
+    if (!f) {
+      return res.status(400).json({ error: "No file uploaded" });
+    }
+
+    // Enregistre le fichier en DB
+    const doc = await File.create({
+      user: req.user._id,
+      name: f.originalname,
+      url: `/uploads/${f.filename}`, // selon ta stratégie de stockage
+      mimeType: f.mimetype || "application/octet-stream",
+      size: f.size || 0,
+    });
+
+    // Émet un évènement temps réel (si besoin)
+    const io = req.app.get("io");
+    io?.emit("file:uploaded", {
+      fileId: doc._id,
+      userId: req.user._id,
+    });
+
+    return res.json({
+      ok: true,
+      file: {
+        id: String(doc._id),
+        name: doc.name,
+        url: doc.url,
+        mimeType: doc.mimeType,
+        size: doc.size,
+      },
+    });
+  } catch (e: any) {
+    return res.status(500).json({ error: e?.message || "Upload error" });
   }
-});
-export const upload = multer({ storage, limits: { fileSize: 10 * 1024 * 1024 } }); // 10MB
-
-export async function handleUpload(req: AuthReq, res: Response) {
-  // @ts-ignore
-  const f = req.file;
-  const doc = await Document.create({
-    user: req.user!.id,
-    application: req.body.applicationId || undefined,
-    originalName: f.originalname,
-    mimeType: f.mimetype,
-    size: f.size,
-    url: `/files/${f.filename}`
-  });
-  res.json(doc);
 }

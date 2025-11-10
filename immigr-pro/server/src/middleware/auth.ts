@@ -1,21 +1,23 @@
-import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
-import { CONFIG } from "../config.js";
+const JWT_SECRET = process.env.JWT_SECRET || "dev_secret_replace_me";
 
-export interface AuthReq extends Request { user?: { id: string; role: "user"|"admin" } }
+export function requireAuth(req: any, res: any, next: any) {
+  const h = req.headers.authorization || "";
+  const token = h.startsWith("Bearer ") ? h.slice(7) : null;
+  if (!token) return res.status(401).json({ error: "Token manquant" });
 
-export function requireAuth(role?: "admin") {
-  return (req: AuthReq, res: Response, next: NextFunction) => {
-    const header = req.headers.authorization;
-    if (!header?.startsWith("Bearer ")) return res.status(401).json({message: "Unauthorized"});
-    const token = header.slice(7);
-    try {
-      const payload = jwt.verify(token, CONFIG.JWT_SECRET) as any;
-      req.user = { id: payload.id, role: payload.role };
-      if (role && payload.role !== role) return res.status(403).json({message: "Forbidden"});
-      next();
-    } catch {
-      res.status(401).json({message: "Invalid token"});
-    }
-  };
+  try {
+    const payload = jwt.verify(token, JWT_SECRET) as any;
+    req.userId = payload.sub;
+    req.userRole = payload.role;
+    next();
+  } catch {
+    return res.status(401).json({ error: "Token invalide" });
+  }
+}
+
+// Optionnel : stricte admin
+export function requireAdmin(req: any, res: any, next: any) {
+  if (req.userRole !== "admin") return res.status(403).json({ error: "Réservé administrateur" });
+  next();
 }

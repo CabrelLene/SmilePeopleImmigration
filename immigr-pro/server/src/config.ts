@@ -1,10 +1,10 @@
-import dotenv from "dotenv";
-dotenv.config();
+import 'dotenv/config';
 
-export const CONFIG = {
-  MONGO_URI: process.env.MONGO_URI || "mongodb://127.0.0.1:27017/immigrpro",
-  JWT_SECRET: process.env.JWT_SECRET || "dev_secret_change_me",
-  PORT: Number(process.env.PORT || 5000),
-  CLIENT_URL: process.env.CLIENT_URL || "http://localhost:5173",
-  UPLOAD_DIR: process.env.UPLOAD_DIR || "uploads"
-};
+export const env = {
+  PORT: Number(process.env.PORT || 4000),
+  MONGO_URI: process.env.MONGO_URI || 'mongodb://localhost:27017/immigrpro',
+  JWT_SECRET: process.env.JWT_SECRET || 'change_me',
+  CORS_ORIGIN: process.env.CORS_ORIGIN || 'http://localhost:5173',
+  UPLOAD_DIR: process.env.UPLOAD_DIR || './uploads',
+  MAX_FILE_SIZE_MB: Number(process.env.MAX_FILE_SIZE_MB || 10),
+} as const;

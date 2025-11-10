@@ -1,3 +1,4 @@
+// src/pages/auth/Login.tsx
 import { useForm } from "react-hook-form";
 import { useAuth } from "../../store/auth";
 import {
@@ -29,7 +30,6 @@ import { ViewIcon, ViewOffIcon } from "@chakra-ui/icons";
 import { motion } from "framer-motion";
 
 const MCard = motion(Card);
-const MBox = motion(Box);
 
 type FormVals = {
   email: string;
@@ -50,8 +50,9 @@ export default function Login() {
 
   const onSubmit = async (v: FormVals) => {
     try {
-      await login(v.email, v.password);
-      nav("/dashboard");
+      const usr = await login(v.email, v.password, v.remember);
+      const role = (usr.role || "user").toLowerCase();
+      nav(role === "admin" ? "/admin" : "/dashboard");
     } catch (e: any) {
       toast({
         title: "Échec de la connexion",
@@ -69,15 +70,12 @@ export default function Login() {
       gap={{ base: 6, lg: 10 }}
       alignItems="stretch"
     >
-      {/* Panneau gauche - message & illustration (cache en mobile si tu veux) */}
-      <Box
-        as={motion.div}
+      {/* Panneau gauche - message & illustration */}
+      <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        gridColumn={{ base: "1 / -1", lg: "1 / 7" }}
-        display="flex"
-        alignItems="center"
+        style={{ gridColumn: '1 / -1' }}
       >
         <Box
           w="full"
@@ -87,32 +85,37 @@ export default function Login() {
           border="1px solid"
           borderColor="whiteAlpha.200"
           backdropFilter="blur(10px)"
+          gridColumn={{ base: "1 / -1", lg: "1 / 7" }}
+          display="flex"
+          alignItems="center"
         >
-          <VStack align="flex-start" spacing={5}>
-            <Avatar size="lg" name="ImmigrPro" />
-            <Heading
-              size={isMobile ? "xl" : "2xl"}
-              lineHeight="1.1"
-              bgGradient="linear(to-r, brand.400, purple.300)"
-              bgClip="text"
-            >
-              Smile Immigration
-            </Heading>
-            <Text fontSize={{ base: "md", md: "lg" }} opacity={0.9} maxW="3xl">
-              Accédez à votre espace sécurisé pour <b>déposer vos documents</b>, suivre votre <b>dossier</b> en temps réel,
-              et bénéficier d’un accompagnement <b>professionnel</b> pas à pas.
-            </Text>
-            <HStack spacing={3} flexWrap="wrap">
-              <TagPill>UI glassmorphism</TagPill>
-              <TagPill>Installable PWA</TagPill>
-              <TagPill>Sécurisé</TagPill>
-              <TagPill>Responsive</TagPill>
-            </HStack>
-          </VStack>
+          <Box w="full">
+            <VStack align="flex-start" spacing={5}>
+              <Avatar size="lg" name="ImmigrPro" />
+              <Heading
+                size={isMobile ? "xl" : "2xl"}
+                lineHeight="1.1"
+                bgGradient="linear(to-r, brand.400, purple.300)"
+                bgClip="text"
+              >
+                Smile Immigration
+              </Heading>
+              <Text fontSize={{ base: "md", md: "lg" }} opacity={0.9} maxW="3xl">
+                Accédez à votre espace sécurisé pour <b>déposer vos documents</b>, suivre votre <b>dossier</b> en temps réel,
+                et bénéficier d’un accompagnement <b>professionnel</b> pas à pas.
+              </Text>
+              <HStack spacing={3} flexWrap="wrap">
+                <TagPill>UI glassmorphism</TagPill>
+                <TagPill>Installable PWA</TagPill>
+                <TagPill>Sécurisé</TagPill>
+                <TagPill>Responsive</TagPill>
+              </HStack>
+            </VStack>
+          </Box>
         </Box>
-      </Box>
+      </motion.div>
 
-      {/* Panneau droit - Formulaire avec cadre gradient premium */}
+      {/* Panneau droit - Formulaire */}
       <Box gridColumn={{ base: "1 / -1", lg: "7 / -1" }} display="flex" alignItems="center">
         <MCard
           maxW="lg"
@@ -121,7 +124,7 @@ export default function Login() {
           bg="transparent"
           initial={{ opacity: 0, y: 8, scale: 0.99 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ duration: 0.25 }}
+          transition={{ duration: 0.25 } as any}
         >
           {/* Gradient frame */}
           <Box

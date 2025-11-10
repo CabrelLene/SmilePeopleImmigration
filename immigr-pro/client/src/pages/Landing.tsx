@@ -26,19 +26,55 @@ import {
   StarIcon,
   TimeIcon
 } from "@chakra-ui/icons";
+import { Helmet } from "react-helmet-async";
+
+import ParallaxHero from "../components/ParallaxHero";
+import TrustMarquee from "../components/TrustMarquee";
+import QuickEligibility from "../components/QuickEligibility";
 
 const MBox = motion(Box);
 const MCard = motion(Card);
 
 // Variants d’animation
-const fadeUp = { initial: { opacity: 0, y: 12 }, whileInView: { opacity: 1, y: 0 }, viewport: { once: true, margin: "-80px" }, transition: { duration: 0.35 } };
-const fadeStagger = { hidden: { opacity: 0, y: 8 }, show: { opacity: 1, y: 0, transition: { staggerChildren: 0.08 } } };
+const fadeUp = {
+  initial: { opacity: 0, y: 12 },
+  whileInView: { opacity: 1, y: 0 },
+  viewport: { once: true, margin: "-80px" },
+  transition: { duration: 0.35 }
+};
+const fadeStagger = {
+  hidden: { opacity: 0, y: 8 },
+  show: { opacity: 1, y: 0, transition: { staggerChildren: 0.08 } }
+};
 const item = { hidden: { opacity: 0, y: 8 }, show: { opacity: 1, y: 0 } };
 
 export default function Landing() {
   return (
     <Container maxW="container.xl" py={{ base: 8, md: 12 }}>
-      {/* HERO */}
+      <Helmet>
+        <title>ImmigrPro — Immigration au Canada, simple & accompagnée</title>
+        <meta
+          name="description"
+          content="Évaluez votre profil, obtenez une recommandation de programme et un budget estimé. Plateforme sécurisée, PWA, accompagnement professionnel."
+        />
+        <meta property="og:title" content="ImmigrPro — Votre parcours d’immigration, clarifié" />
+        <meta
+          property="og:description"
+          content="Évaluation rapide, recommandation fiable, suivi dossier — on vous accompagne de A à Z."
+        />
+        <meta property="og:type" content="website" />
+        <meta property="og:image" content="/social-card.png" />
+      </Helmet>
+
+      {/* HERO PARALLAX PREMIUM */}
+      <ParallaxHero />
+
+      {/* MARQUEE DE CONFIANCE */}
+      <MBox {...fadeUp} mt={{ base: 6, md: 8 }} mb={{ base: 10, md: 12 }}>
+        <TrustMarquee />
+      </MBox>
+
+      {/* BANDEAU PROMO + CTA */}
       <MBox {...fadeUp} textAlign="center" mb={{ base: 10, md: 14 }}>
         <Badge colorScheme="purple" variant="solid" borderRadius="full" px={4} py={1} mb={3}>
           Nouveau • Évaluation rapide & gratuite
@@ -61,6 +97,11 @@ export default function Landing() {
         </HStack>
       </MBox>
 
+      {/* MINI-QUIZ EXPRESS */}
+      <MBox {...fadeUp} mb={{ base: 12, md: 16 }}>
+        <QuickEligibility />
+      </MBox>
+
       {/* METRICS */}
       <MBox {...fadeUp} mb={{ base: 12, md: 16 }}>
         <SimpleGrid columns={{ base: 2, md: 4 }} gap={4}>
@@ -77,15 +118,36 @@ export default function Landing() {
           title="Nos services"
           subtitle="De l’évaluation à l’obtention, on vous guide étape par étape."
         />
-        <SimpleGrid columns={{ base: 1, md: 2, xl: 4 }} gap={5} mt={6} as={motion.div} variants={fadeStagger} initial="hidden" whileInView="show" viewport={{ once: true }}>
-          <ServiceCard icon={CheckCircleIcon} title="Évaluation intelligente"
-            desc="Un diagnostic basé sur les points officiels pour orienter votre stratégie." />
-          <ServiceCard icon={ChatIcon} title="Accompagnement humain"
-            desc="Un conseiller suit votre dossier, répond à vos questions et vous relance si besoin." />
-          <ServiceCard icon={TimeIcon} title="Suivi en temps réel"
-            desc="Timeline de votre dossier, étapes, notifications et délais estimés." />
-          <ServiceCard icon={LockIcon} title="Sécurité & confidentialité"
-            desc="Données chiffrées, documents stockés en toute sécurité." />
+        <SimpleGrid
+          columns={{ base: 1, md: 2, xl: 4 }}
+          gap={5}
+          mt={6}
+          as={motion.div}
+          variants={fadeStagger}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true }}
+        >
+          <ServiceCard
+            icon={CheckCircleIcon}
+            title="Évaluation intelligente"
+            desc="Un diagnostic basé sur les points officiels pour orienter votre stratégie."
+          />
+          <ServiceCard
+            icon={ChatIcon}
+            title="Accompagnement humain"
+            desc="Un conseiller suit votre dossier, répond à vos questions et vous relance si besoin."
+          />
+          <ServiceCard
+            icon={TimeIcon}
+            title="Suivi en temps réel"
+            desc="Timeline de votre dossier, étapes, notifications et délais estimés."
+          />
+          <ServiceCard
+            icon={LockIcon}
+            title="Sécurité & confidentialité"
+            desc="Données chiffrées, documents stockés en toute sécurité."
+          />
         </SimpleGrid>
       </MBox>
 
@@ -95,7 +157,16 @@ export default function Landing() {
           title="Programmes d’immigration"
           subtitle="Nous couvrons les voies principales, fédérales et provinciales."
         />
-        <SimpleGrid columns={{ base: 1, md: 2, xl: 3 }} gap={5} mt={6} as={motion.div} variants={fadeStagger} initial="hidden" whileInView="show" viewport={{ once: true }}>
+        <SimpleGrid
+          columns={{ base: 1, md: 2, xl: 3 }}
+          gap={5}
+          mt={6}
+          as={motion.div}
+          variants={fadeStagger}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true }}
+        >
           <ProgramCard title="Entrée Express" points={["Travailleurs qualifiés", "Calcul CRS", "Voies fédérales"]} />
           <ProgramCard title="PNP (Provinces)" points={["Nominations provinciales", "Volet offre d’emploi", "Stratégie par province"]} />
           <ProgramCard title="Étudiants internationaux" points={["CAQ/Lettre acceptation", "Permis d’études", "Passerelles vers RP"]} />

@@ -1,38 +1,105 @@
-import { Response } from "express";
-import Application from "../models/Application.js";
-import { AuthReq } from "../middleware/auth.js";
-import { evaluateCandidate } from "../utils/evaluator.js";
-import { estimateBudget } from "../utils/budget.js";
+import { Request, Response } from "express";
+import Application, { type ApplicationDoc } from "../models/Application.js";
 
-export async function createOrUpdateAnswers(req: AuthReq, res: Response) {
-  const { key, data } = req.body; // step key + data
-  let app = await Application.findOne({ user: req.user!.id, status: "draft" });
-  if (!app) app = await Application.create({ user: req.user!.id, answers: [] });
-
-  const found = app.answers.find((s: any) => s.key === key);
-  if (found) found.data = data; else app.answers.push({ key, data });
-  await app.save();
-  res.json(app);
+/**
+ * Récupère l’app du user connecté (une seule application “active”).
+ * On utilise findOne pour éviter les confusions tableau/objet.
+ */
+export async function getMyApp(req: Request, res: Response) {
+  const userId = (req as any).userId;
+  const app = await Application.findOne({ user: userId }).lean<ApplicationDoc | null>();
+  res.json({ app });
 }
 
-export async function evaluate(req: AuthReq, res: Response) {
-  const app = await Application.findOne({ user: req.user!.id }).lean();
-  if (!app) return res.status(404).json({ message: "Aucune réponse" });
-  const evalRes = evaluateCandidate(app.answers);
-  const budget = estimateBudget(evalRes.program);
-  await Application.updateOne({ _id: app._id }, { programSuggestion: evalRes.program, scoreBreakdown: evalRes.breakdown, budgetEstimate: budget });
-  res.json({ ...evalRes, budget });
+/**
+ * Endpoint appelé par le client: /api/app/evaluate
+ * Renvoie program, score, budget, recommendations.
+ * Pas d'IA: valeurs venant de l’app si dispo sinon fallback.
+ */
+export async function evaluate(req: Request, res: Response) {
+  const userId = (req as any).userId;
+  const app = await Application.findOne({ user: userId }).lean<ApplicationDoc | null>();
+
+  const program = app?.programSuggestion ?? "—";
+  const score = typeof app?.score === "number" ? app!.score! : 480;
+  const budget = typeof app?.budgetEstimate === "number" ? app!.budgetEstimate! : 0;
+
+  const recommendations = [
+    { label: program, score },
+    { label: "Provincial Nominee – Ontario" },
+    { label: "Expérience Québec" },
+  ];
+
+  res.json({ program, score, budget, recommendations });
 }
 
-export async function listAll(req: AuthReq, res: Response) {
-  // admin
-  const list = await Application.find().populate("user","email fullName").sort({createdAt:-1});
-  res.json(list);
+/**
+ * Liste paginée pour l’admin (utilisée par AdminDashboard).
+ * Query params: q, status, sort, dir, page, pageSize
+ */
+export async function adminList(req: Request, res: Response) {
+  const {
+    q = "",
+    status = "all",
+    sort = "createdAt",
+    dir = "desc",
+    page = "1",
+    pageSize = "8",
+  } = req.query as Record<string, string>;
+
+  const numPage = Math.max(1, parseInt(page, 10) || 1);
+  const limit = Math.max(1, parseInt(pageSize, 10) || 8);
+  const skip = (numPage - 1) * limit;
+
+  const find: Record<string, any> = {};
+  if (status !== "all") find.status = status;
+  if (q.trim()) {
+    find.$or = [
+      { programSuggestion: { $regex: q, $options: "i" } },
+      { "answers.program": { $regex: q, $options: "i" } },
+    ];
+  }
+
+  const sortMap: Record<string, 1 | -1> = { asc: 1, desc: -1 };
+  const sortDir = sortMap[(dir || "desc").toLowerCase()] ?? -1;
+  const sortObj: Record<string, 1 | -1> = { [sort || "createdAt"]: sortDir };
+
+  const [items, total] = await Promise.all([
+    Application.find(find)
+      .populate("user", "fullName email photoUrl")
+      .sort(sortObj)
+      .skip(skip)
+      .limit(limit)
+      .lean(),
+    Application.countDocuments(find),
+  ]);
+
+  const pageCount = Math.max(1, Math.ceil(total / limit));
+  res.json({ items, total, pageCount });
 }
 
-export async function upsertStatus(req: AuthReq, res: Response) {
+/**
+ * Admin update: partiel (status, programSuggestion, budgetEstimate, counselor, score).
+ */
+export async function adminUpdate(req: Request, res: Response) {
   const { id } = req.params;
-  const { status } = req.body;
-  const updated = await Application.findByIdAndUpdate(id, { status }, { new: true });
+  const { status, programSuggestion, budgetEstimate, counselor, score } = req.body || {};
+
+  const up: Record<string, any> = {};
+  if (status) up.status = status;
+  if (typeof programSuggestion === "string") up.programSuggestion = programSuggestion;
+  if (typeof budgetEstimate === "number") up.budgetEstimate = budgetEstimate;
+  if (typeof score === "number") up.score = score;
+  if (typeof counselor === "string") up.counselor = counselor;
+
+  const updated = await Application.findByIdAndUpdate(id, up, { new: true }).lean();
   res.json(updated);
+}
+
+/**
+ * Ajouter une note (placeholder – à relier à un vrai modèle si besoin)
+ */
+export async function adminAddNote(_req: Request, res: Response) {
+  // Ici tu peux écrire en base un modèle Note lié à Application.
+  res.json({ ok: true });
 }

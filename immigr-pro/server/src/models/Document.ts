@@ -1,12 +1,23 @@
-import { Schema, model, Types } from "mongoose";
+import { Schema, model, Document, Types } from 'mongoose';
 
-const docSchema = new Schema({
-  user: { type: Types.ObjectId, ref: "User", required: true },
-  application: { type: Types.ObjectId, ref: "Application" },
-  originalName: String,
-  mimeType: String,
-  size: Number,
-  url: String // served from /files/<name>
-}, { timestamps: true });
+export interface IDocument extends Document {
+  userId: Types.ObjectId;
+  filename: string;
+  originalName: string;
+  mimeType: string;
+  size: number;
+  createdAt: Date;
+}
 
-export default model("Document", docSchema);
+const DocSchema = new Schema<IDocument>(
+  {
+    userId: { type: Schema.Types.ObjectId, ref: 'User', required: true, index: true },
+    filename: { type: String, required: true },
+    originalName: { type: String, required: true },
+    mimeType: { type: String, required: true },
+    size: { type: Number, required: true }
+  },
+  { timestamps: true }
+);
+
+export const DocumentModel = model<IDocument>('Document', DocSchema);

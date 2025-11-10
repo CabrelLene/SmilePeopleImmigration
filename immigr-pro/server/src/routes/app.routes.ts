@@ -1,13 +1,12 @@
 import { Router } from "express";
-import { requireAuth } from "../middleware/auth.js";
-import { createOrUpdateAnswers, evaluate, listAll, upsertStatus } from "../controllers/app.controller.js";
+import { evaluate, getMyApp } from "../controllers/app.controller.js";
+ 
+import { requireAuth } from "../middleware/requireAuth.js"
 
-const r = Router();
-r.use(requireAuth());
-// user
-r.post("/answers", createOrUpdateAnswers);
-r.get("/evaluate", evaluate);
-// admin
-r.get("/", requireAuth("admin"), listAll);
-r.patch("/:id/status", requireAuth("admin"), upsertStatus);
-export default r;
+const router = Router();
+
+// Exemples d’API “côté user”
+router.get("/me", requireAuth, getMyApp);
+router.get("/evaluate", requireAuth, evaluate);
+
+export default router;

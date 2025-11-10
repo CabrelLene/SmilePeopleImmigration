@@ -70,7 +70,8 @@ export default function Register() {
       return;
     }
     try {
-      await doRegister({ fullName: v.fullName, email: v.email, password: v.password });
+      // ✅ Appel corrigé : register(fullName, email, password)
+      await doRegister(v.fullName, v.email, v.password);
       nav("/dashboard");
     } catch (e: any) {
       toast({
@@ -137,7 +138,7 @@ export default function Register() {
           bg="transparent"
           initial={{ opacity: 0, y: 8, scale: 0.99 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ duration: 0.25 }}
+          transition={{ duration: 0.25 } as any}
         >
           {/* Cadre dégradé premium */}
           <Box p="2px" borderRadius="2xl"
