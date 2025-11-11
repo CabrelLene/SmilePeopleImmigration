@@ -17,11 +17,11 @@ export default function TrustMarquee() {
         {Array.from({ length: 2 }).map((_, k) => (
           <HStack key={k} gap={10}>
             {/* Remplace par tes logos (SVG/PNG) */}
-            <Image src="/logos/cic.svg" alt="IRCC" h="28px" opacity={0.85}/>
-            <Image src="/logos/quebec.svg" alt="Québec" h="28px" opacity={0.85}/>
-            <Image src="/logos/ontario.svg" alt="Ontario" h="28px" opacity={0.85}/>
-            <Image src="/logos/bc.svg" alt="British Columbia" h="28px" opacity={0.85}/>
-            <Image src="/logos/alberta.svg" alt="Alberta" h="28px" opacity={0.85}/>
+            <Image src="/logos/cic.png" alt="IRCC" h="28px" opacity={0.85}/>
+            <Image src="/logos/quebec.png" alt="Québec" h="28px" opacity={0.85}/>
+            <Image src="/logos/ontario.png" alt="Ontario" h="28px" opacity={0.85}/>
+            <Image src="/logos/bc.png" alt="British Columbia" h="28px" opacity={0.85}/>
+            <Image src="/logos/alberta.jpeg" alt="Alberta" h="28px" opacity={0.85}/>
           </HStack>
         ))}
       </HStack>
